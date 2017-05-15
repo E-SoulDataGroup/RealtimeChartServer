@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Metrics Real-time</title>
+    <script type="text/javascript" src="{{ url_for('static', filename='socket.io.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery-3.2.1.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='bootstrap-3.3.7-dist/js/bootstrap.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-3.3.7-dist/css/bootstrap.min.css') }}" >
+  </head>
+  <body>
+    <ul id="out" class="list-group">
+        <li class="list-group-item">
+            <span class="badge">点击次数</span>
+            <span class="badge">IP数量</span>
+        广告ID
+        </li>
+    </ul>
+    <button type='button' class='btn btn-primary' id='init'>init</button>
+    <script>
+        $(".list-group").css({"width": "500px"})
+        var socket = io.connect('http://192.168.112.47:5556/test');
+        $('#init').on('click', function(){socket.emit('init', {'session_id':'2903819028301', 'ad_id':['1001']});})
+        socket.on('init', function(msg) {console.log(msg)})
+        /*var msg_old = {};
+        socket.on('my response', function(msg) {
+            var keys = Object.keys(msg);
+            for (var i = 0; i < keys.length; i++) {
+                if ($('#' + keys[i]).length == 0) {
+                    $('#out').append(
+                        "<li id='" + keys[i] + "' class='list-group-item'>" +
+                        "<span id='pv' class='badge'>" + msg[keys[i]][0]  + "</span>" + 
+                        "<span id='uv' class='badge'>" + msg[keys[i]][1]  + "</span>" + 
+                        "<button type='button' class='btn btn-primary'>" + keys[i] + "</button>" + 
+                        "</li>"
+                    );
+                    $('#'+keys[i]).fadeOut(100);
+                    $('#'+keys[i]).fadeIn(100);
+                }
+                
+                else {
+                    if ($('#'+keys[i]).find("#pv").text() != msg[keys[i]][0] || $('#'+keys[i]).find("#uv").text() != msg[keys[i]][1]) {
+                        $('#'+keys[i]).find("#pv").html(msg[keys[i]][0]);
+                        $('#'+keys[i]).find("#uv").html(msg[keys[i]][1]);
+                        $('#'+keys[i]).find("button").html(keys[i]);
+                        $('#'+keys[i]).fadeOut(100);
+                        $('#'+keys[i]).fadeIn(100);
+                    }
+                }
+            }
+
+            $(".list-group").css({"width": "500px"})
+        })*/
+    </script>
+    <div id="hack"><iframe src='http://192.168.112.47:5556/metrics' width='0px' height='0px'></frame></div>
+  </body>
+</html>

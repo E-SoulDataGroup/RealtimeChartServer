@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <title>Metrics Real-time</title>
+    <script type="text/javascript" src="{{ url_for('static', filename='socket.io.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery-3.2.1.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='bootstrap-3.3.7-dist/js/bootstrap.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-3.3.7-dist/css/bootstrap.min.css') }}" >
+  </head>
+  <body>
+    <ul id="out" class="list-group">
+        <li class="list-group-item">
+            <span class="badge">点击次数</span>
+            <span class="badge">IP数量</span>
+        广告ID
+        </li>
+    </ul>
+    <button type='button' class='btn btn-primary' id='init'>init</button>
+    <script>
+        $(".list-group").css({"width": "500px"})
+        var socket = io.connect('http://192.168.112.47:5556/test');
+        $('#init').on('click', function(){socket.emit('init', {'session_id':'3789478923472', 'ad_id':['1002']});})
+        socket.on('init', function(msg) {console.log(msg)})
+    </script>
+  </body>
+</html>
