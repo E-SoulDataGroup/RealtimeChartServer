@@ -16,11 +16,14 @@
         </li>
     </ul>
     <button type='button' class='btn btn-primary' id='init'>init</button>
+    <button type='button' class='btn btn-primary' id='update'>update</button>
     <script>
         $(".list-group").css({"width": "500px"})
         var socket = io.connect('http://192.168.112.47:5556/test');
         $('#init').on('click', function(){socket.emit('init', {'session_id':'2903819028301', 'ad_id':['1001']});})
         socket.on('init', function(msg) {console.log(msg)})
+        $('#update').on('click', function(){socket.emit('update', {'session_id':'2903819028301', 'ad_id':['1001']});})
+        socket.on('my response', function(msg) {console.log(msg)})
         /*var msg_old = {};
         socket.on('my response', function(msg) {
             var keys = Object.keys(msg);

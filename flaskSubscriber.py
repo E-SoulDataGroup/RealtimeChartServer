@@ -6,6 +6,7 @@ from flask.ext.socketio import join_room, leave_room
 from kafka import KafkaConsumer
 import json
 import datetime
+import random
 
 app = Flask(__name__)
 app.debug = True
@@ -108,11 +109,16 @@ def handle_init_event(msg):
     #update_chart = False
     join_room(msg['session_id'])
     # 用户没有选择进行init时先约定随机选取n个id进行展示
-    if '0' in ids or 0 in msg['ad_id']:
-        ad_ids = random.sample(data.keys(), len(msg['ad_id']))
+    if '0' in msg['ad_id'] or 0 in msg['ad_id']:
+        if len(data.keys()) < len(msg['ad_id']):
+            ad_ids = [str(item) for item in range(1001, 1001+len(msg['ad_id']))]
+        else:
+            ad_ids = random.sample(data.keys(), len(msg['ad_id']))
     else:
         ad_ids = msg['ad_id']
+    print ad_ids
     user_ad_state[msg['session_id']] = ad_ids
+    print user_ad_state
     #if isinstance(msg, list):
     # 删除间隔两分钟内的历史记录
     data_filtered = history_data_filter(data, ad_ids)
@@ -128,6 +134,7 @@ def handle_update_event(msg):
     # 开始每分钟socket最新记录，只取所需要的id
     #update_chart = True
     join_room(str(msg['session_id']) + 'update')
+    print user_ad_state
 
 def history_data_filter(data_all, ids):
     global chart_node_interval
