@@ -7,6 +7,7 @@ from kafka import KafkaConsumer
 import json
 import datetime
 import random
+import threading
 
 app = Flask(__name__)
 app.debug = True
@@ -17,6 +18,7 @@ data = {}
 user_ad_state = {}
 update_chart = False
 chart_node_interval = 300
+lock = threading.Lock()
 
 @app.route('/')
 def index():
@@ -26,9 +28,11 @@ def index():
 def client1():
     return render_template('client1.html')
 
-@app.route('/metrics')
+#@app.route('/metrics')
 def test_message():
-    consumer = KafkaConsumer('vega_metrics', bootstrap_servers=['192.168.112.49:6667','192.168.112.50:6667','192.168.112.52:6667'])
+    global lock
+    lock.acquire()
+    consumer = KafkaConsumer('realtime_viz', bootstrap_servers=['192.168.112.49:6667','192.168.112.50:6667','192.168.112.52:6667'])
     global data
     global update_chart
     global chart_node_interval
@@ -41,7 +45,6 @@ def test_message():
         #print ("topic=%s key=%s value=%s" % (message.topic, message.key, message.value))
         item = json.loads(message.value)
         current_time = datetime.datetime.strptime(message.key, '%Y-%m-%d %H:%M:%S')
-        print current_time
         # 第一次接收数据，上次处理时间赋初始值
         if not previous_time:
             previous_time = current_time
@@ -88,6 +91,7 @@ def test_message():
         else:
             continue
         previous_time = current_time
+    lock.release()
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
@@ -111,17 +115,16 @@ def handle_init_event(msg):
     # 用户没有选择进行init时先约定随机选取n个id进行展示
     if '0' in msg['ad_id'] or 0 in msg['ad_id']:
         if len(data.keys()) < len(msg['ad_id']):
-            ad_ids = [str(item) for item in range(1001, 1001+len(msg['ad_id']))]
+            ad_ids = [str(item) for item in range(10000, 10000+len(msg['ad_id']))]
         else:
             ad_ids = random.sample(data.keys(), len(msg['ad_id']))
     else:
         ad_ids = msg['ad_id']
-    print ad_ids
     user_ad_state[msg['session_id']] = ad_ids
-    print user_ad_state
     #if isinstance(msg, list):
     # 删除间隔两分钟内的历史记录
     data_filtered = history_data_filter(data, ad_ids)
+    print data_filtered.keys()
     # socket发送历史记录，恢复原始设置
     socketio.emit('init', data_filtered, room=msg['session_id'], namespace='/test')
 
@@ -168,4 +171,5 @@ def error_handler_data(e):
 
 if __name__ == '__main__':
     #app.run(host='0.0.0.0', port=5556, threaded=True)
+    threading.Thread(target = test_message, args = (), name = 'data_getter_thread').start()
     socketio.run(app,"0.0.0.0",5556) 
